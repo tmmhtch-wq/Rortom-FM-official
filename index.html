@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RT Radio – Classic Player</title>
+<link rel="icon" href="RT LOG BLUE AND YELLOW.png" />
+<style>
+body{
+  margin:0;font-family:Poppins,Arial;background:#05101f;color:#e6eef8;
+}
+.wrapper{max-width:1400px;margin:auto;padding:40px;}
+
+/* MAIN PLAYER BOX */
+.player-box{
+  background:#0a1322;
+  padding:40px 50px;
+  border-radius:26px;
+  box-shadow:0 0 40px #ffc10777,0 0 70px #004aad77;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:40px;
+}
+
+/* LEFT SIDE */
+.left{
+  width:620px;
+}
+.title{font-size:1.8rem;font-weight:700;color:#ffc107;margin-bottom:6px;}
+.status{color:#7fa0c0;margin-bottom:18px;}
+.track{font-size:1.25rem;margin-top:15px;}
+.artist{color:#9cb4cd;font-size:1rem;}
+
+/* BUTTONS */
+.controls{margin-top:25px;display:flex;align-items:center;gap:25px;}
+.big-play{
+  width:90px;height:90px;border-radius:50%;background:#ffc107;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 25px #ffc107aa;
+}
+.big-play svg{width:42px;height:42px;fill:#000;}
+
+.ctrl-btn{
+  width:55px;height:55px;border-radius:12px;background:#0d1b30;
+  border:2px solid #ffffff20;color:#ffc107;
+  display:flex;align-items:center;justify-content:center;
+}
+.ctrl-btn svg{width:28px;height:28px;fill:#ffc107;}
+
+/* GRADIENT VOLUME */
+.volume{
+  -webkit-appearance:none;
+  appearance:none;
+  width:220px;
+  height:10px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#ffc107,#ff8800,#004aad);
+  outline:none;
+}
+.volume::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:22px;height:22px;border-radius:50%;
+  background:#ffc107;
+  box-shadow:0 0 12px #ffc107;
+  cursor:pointer;
+}
+
+/* ALBUM */
+.album{
+  width:260px;height:260px;border-radius:20px;overflow:hidden;
+  box-shadow:0 0 25px #ffc10755,0 0 40px #004aad55;
+}
+.album img{width:100%;height:100%;object-fit:cover;}
+
+/* ADS */
+.ads-box{
+  margin-top:50px;background:#0a1322;padding:30px;border-radius:20px;
+  box-shadow:0 0 30px #ffc10755,0 0 40px #004aad55;
+}
+.ads-title{color:#ffc107;font-size:1.4rem;margin-bottom:18px;font-weight:700;}
+#adArea{
+  width:100%;height:260px;border-radius:16px;background:#071521;
+  display:flex;align-items:center;justify-content:center;color:#9caac7;
+  font-size:1.2rem;overflow:hidden;
+}
+#adArea img{width:100%;height:100%;object-fit:cover;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<div class="player-box">
+  
+  <!-- LEFT SIDE -->
+  <div class="left">
+    <div class="title">RT Radio Live</div>
+    <div class="status" id="statusText">Stopped</div>
+
+    <div class="track" id="currentTrack">Loading…</div>
+    <div class="artist" id="currentArtist"></div>
+
+    <div class="controls">
+      <button class="big-play" id="playBtn">
+        <svg id="playIcon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
+        <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none">
+          <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+        </svg>
+      </button>
+
+      <button class="ctrl-btn" id="stopBtn"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg></button>
+
+      <button class="ctrl-btn" id="muteBtn">
+        <svg id="volOn" viewBox="0 0 24 24">
+          <polygon points="3,9 9,9 13,5 13,19 9,15 3,15"/>
+          <path d="M16 8.5a4.5 4.5 0 0 1 0 7"/>
+          <path d="M16.5 5.5a8 8 0 0 1 0 13"/>
+        </svg>
+        <svg id="volOff" viewBox="0 0 24 24" style="display:none">
+          <polygon points="3,9 9,9 13,5 13,19 9,15 3,15"/>
+          <line x1="16" y1="8" x2="22" y2="16" stroke-width="2"/>
+          <line x1="22" y1="8" x2="16" y2="16" stroke-width="2"/>
+        </svg>
+      </button>
+
+      <input type="range" class="volume" id="volume" min="0" max="1" step="0.01" value="1">
+    </div>
+  </div>
+
+  <!-- RIGHT (ALBUM) -->
+  <div class="album">
+    <img id="currentCover" src="RT LOG BLUE AND YELLOW.png">
+  </div>
+
+</div>
+
+<!-- ADS -->
+<div class="ads-box">
+  <div class="ads-title">Advertisements</div>
+  <div id="adArea">Ad space</div>
+</div>
+
+</div>
+
+<script>
+/* ===========================
+      PLAYER + AUTO-RECONNECT
+   =========================== */
+const player = new Audio("https://media2.streambrothers.com:8056/stream");
+player.autoplay = false;
+
+const playBtn = document.getElementById("playBtn");
+const playIcon = document.getElementById("playIcon");
+const pauseIcon = document.getElementById("pauseIcon");
+const stopBtn = document.getElementById("stopBtn");
+const muteBtn = document.getElementById("muteBtn");
+const volume = document.getElementById("volume");
+const volOn = document.getElementById("volOn");
+const volOff = document.getElementById("volOff");
+const statusText = document.getElementById("statusText");
+
+let reconnecting = false;
+let reconnectTimer = null;
+
+/* AUTO RECONNECT FUNCTION */
+function attemptReconnect() {
+  if (reconnecting) return;
+  reconnecting = true;
+
+  statusText.innerText = "Reconnecting…";
+
+  reconnectTimer = setInterval(() => {
+    player.src = "https://media2.streambrothers.com:8056/stream";
+    player.load();
+    player.play().then(() => {
+      statusText.innerText = "Playing";
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
+      clearInterval(reconnectTimer);
+      reconnecting = false;
+    });
+  }, 5000);
+}
+
+/* DETECT STREAM DROP */
+player.addEventListener("error", attemptReconnect);
+player.addEventListener("stalled", attemptReconnect);
+player.addEventListener("waiting", () => {
+  if (!player.paused) attemptReconnect();
+});
+
+/* PLAY / PAUSE */
+playBtn.onclick = () => {
+  if (player.paused) {
+    player.play().then(() => {
+      playIcon.style.display="none";
+      pauseIcon.style.display="block";
+      statusText.innerText = reconnecting ? "Reconnecting…" : "Playing";
+    }).catch(() => {
+      attemptReconnect();
+    });
+  } else {
+    player.pause();
+    playIcon.style.display="block";
+    pauseIcon.style.display="none";
+    statusText.innerText="Stopped";
+  }
+};
+
+/* STOP */
+stopBtn.onclick = () => {
+  player.pause();
+  player.currentTime = 0;
+  playIcon.style.display="block";
+  pauseIcon.style.display="none";
+  statusText.innerText="Stopped";
+  reconnecting = false;
+  clearInterval(reconnectTimer);
+};
+
+/* MUTE */
+muteBtn.onclick = () => {
+  player.muted = !player.muted;
+  volOn.style.display = player.muted ? "none" : "block";
+  volOff.style.display = player.muted ? "block" : "none";
+};
+
+/* VOLUME */
+volume.oninput = () => { player.volume = volume.value; };
+
+/* ===========================
+      TRACK + ALBUM ART
+   =========================== */
+async function updateTrackInfo() {
+  try {
+    const res = await fetch("https://media2.streambrothers.com:8056/status-json.xsl");
+    const data = await res.json();
+
+    const raw = data.icestats?.source?.title || "";
+    if (!raw.includes(" - ")) return;
+
+    const [artist, track] = raw.split(" - ");
+
+    document.getElementById("currentTrack").textContent = track;
+    document.getElementById("currentArtist").textContent = artist;
+
+    // Album cover from iTunes
+    const artRes = await fetch(
+      "https://itunes.apple.com/search?term=" + encodeURIComponent(`${artist} ${track}`) + "&limit=1"
+    );
+    const artData = await artRes.json();
+
+    if (artData.results.length > 0) {
+      const cover = artData.results[0].artworkUrl100.replace("100x100bb","600x600bb");
+      document.getElementById("currentCover").src = cover;
+    }
+
+  } catch (err) {
+    console.log("Track fetch error:", err);
+  }
+}
+
+setInterval(updateTrackInfo, 10000);
+updateTrackInfo();
+
+/* ===========================
+           ADS
+   =========================== */
+const ads = ["ad1.jpg","ad2.jpg","ad3.jpg","ad4.jpg"];
+let adIndex = 0;
+
+function rotateAd() {
+  adIndex = (adIndex + 1) % ads.length;
+  adArea.innerHTML = `<img src="${ads[adIndex]}">`;
+}
+
+setInterval(rotateAd, 20000);
+rotateAd();
+</script>
+
+<script src="https://media2.streambrothers.com:2020/dist/widgets.js" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
