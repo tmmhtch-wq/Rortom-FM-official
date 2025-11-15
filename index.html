@@ -134,10 +134,12 @@ body{
 </div>
 
 <script>
-/* AUDIO PLAYER */
-const player = new Audio("https://media2.streambrothers.com:8056/stream");
-player.crossOrigin = "anonymous"
+/* -------------------- AUDIO PLAYER -------------------- */
+const STREAM_URL = "https://media2.streambrothers.com:8056/stream";
+
+let player = new Audio(STREAM_URL);
 player.autoplay = false;
+player.crossOrigin = "anonymous";
 
 const playBtn = document.getElementById("playBtn");
 const playIcon = document.getElementById("playIcon");
@@ -149,87 +151,112 @@ const volOn = document.getElementById("volOn");
 const volOff = document.getElementById("volOff");
 const statusText = document.getElementById("statusText");
 
-/* AUTO‑RECONNECT */
-player.addEventListener("error", () => reconnect());
-player.addEventListener("stalled", () => reconnect());
+/* --------------- REAL AUTO-RECONNECT ENGINE --------------- */
+let reconnecting = false;
 
-function reconnect(){
+function reconnectStream() {
+  if (reconnecting) return;
+  reconnecting = true;
+
   statusText.textContent = "Reconnecting…";
-  setTimeout(()=>{
+  console.warn("RT RADIO: Stream dropped. Reconnecting...");
+
+  setTimeout(() => {
+    const currentVol = player.volume;
+    const wasMuted = player.muted;
+
+    player.src = STREAM_URL;
     player.load();
-    player.play().catch(()=>{});
+
+    player.play().then(() => {
+      console.log("RT RADIO: Reconnected!");
+      statusText.textContent = "Playing";
+      player.volume = currentVol;
+      player.muted = wasMuted;
+      reconnecting = false;
+    }).catch(() => {
+      console.log("RT RADIO: Retry in 3s...");
+      reconnecting = false;
+      setTimeout(reconnectStream, 3000);
+    });
+
   }, 2000);
 }
 
-/* PLAY / PAUSE */
+player.addEventListener("error", reconnectStream);
+player.addEventListener("stalled", reconnectStream);
+player.addEventListener("waiting", reconnectStream);
+
+setInterval(() => {
+  if (player.paused || player.readyState <= 2) reconnectStream();
+}, 15000);
+
+/* -------------------- CONTROLS -------------------- */
 playBtn.onclick = () => {
   if (player.paused) {
-    player.play();
-    playIcon.style.display="none";
-    pauseIcon.style.display="block";
-    statusText.innerText="Playing";
+    player.play().then(() => {
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
+      statusText.textContent = "Playing";
+    }).catch(() => reconnectStream());
   } else {
     player.pause();
-    playIcon.style.display="block";
-    pauseIcon.style.display="none";
-    statusText.innerText="Stopped";
+    playIcon.style.display = "block";
+    pauseIcon.style.display = "none";
+    statusText.textContent = "Stopped";
   }
 };
 
-/* STOP */
 stopBtn.onclick = () => {
-  player.pause(); player.currentTime=0;
-  playIcon.style.display="block";
-  pauseIcon.style.display="none";
-  statusText.innerText="Stopped";
+  player.pause();
+  player.currentTime = 0;
+  playIcon.style.display = "block";
+  pauseIcon.style.display = "none";
+  statusText.textContent = "Stopped";
 };
 
-/* MUTE */
-muteBtn.onclick = () =>{
+muteBtn.onclick = () => {
   player.muted = !player.muted;
   volOn.style.display = player.muted ? "none" : "block";
   volOff.style.display = player.muted ? "block" : "none";
 };
 
-/* VOLUME */
 volume.oninput = () => player.volume = volume.value;
 
-/* TRACK INFO */
-async function updateTrackInfo(){
-  try{
+/* -------------------- TRACK INFO -------------------- */
+async function updateTrackInfo() {
+  try {
     const res = await fetch("https://media2.streambrothers.com:8056/status-json.xsl");
     const data = await res.json();
 
     const raw = data.icestats?.source?.title || "";
-    if(!raw.includes(" - ")) return;
+    if (!raw.includes(" - ")) return;
 
     const [artist, track] = raw.split(" - ");
 
     document.getElementById("currentTrack").textContent = track;
     document.getElementById("currentArtist").textContent = artist;
 
-    // Album art
     const artRes = await fetch(
       "https://itunes.apple.com/search?term=" + encodeURIComponent(`${artist} ${track}`) + "&limit=1"
     );
     const artData = await artRes.json();
 
     if (artData.results.length > 0) {
-      const cover = artData.results[0].artworkUrl100.replace("100x100bb","600x600bb");
+      const cover = artData.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
       document.getElementById("currentCover").src = cover;
     }
-  } catch(err){ console.log(err); }
+  } catch (err) {
+    console.log("Track info error:", err);
+  }
 }
 setInterval(updateTrackInfo, 10000);
 updateTrackInfo();
 
-/* ADS ROTATION */
-const ads = ["ad1.jpg","ad2.jpg","ad3.jpg","ad4.jpg"];
-let adIndex = 0;
-function rotateAd(){
-  adIndex = (adIndex + 1) % ads.length;
-  document.getElementById("adArea").innerHTML = `<img src="${ads[adIndex]}">`;
-}
+/* -------------------- ADS ROTATION -------------------- */
+const ads = ["ad1.jpg", "ad2.jpg", "ad3.jpg", "ad4.jpg"]; let adIndex = 0;
+function rotateAd(){ adIndex = (adIndex + 1) % ads.length;
+  document.getElementById("adArea").innerHTML = `<img src="${ads[adIndex]}">`; }
 setInterval(rotateAd, 20000);
 rotateAd();
 </script>
