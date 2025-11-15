@@ -12,7 +12,7 @@ body{
 }
 .wrapper{max-width:1400px;margin:auto;padding:40px;}
 
-/* MAIN PLAYER BOX */
+/* PLAYER CONTAINER */
 .player-box{
   background:#0a1322;
   padding:40px 50px;
@@ -22,49 +22,16 @@ body{
   align-items:center;
   justify-content:space-between;
   gap:40px;
-  flex-wrap:nowrap;
 }
 
-/* MOBILE */
-@media (max-width:860px){
-  .player-box{
-    flex-direction:column;
-    text-align:center;
-    gap:20px;
-    padding:20px;
-  }
-  .left{
-    width:100% !important;
-    max-width:100%;
-  }
-  .controls{
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:18px;
-  }
-  .big-play{
-    width:75px;height:75px;
-  }
-  .ctrl-btn{
-    width:48px;height:48px;
-  }
-  .volume{
-    width:160px;
-  }
-  .album{
-    width:180px !important;
-    height:180px !important;
-  }
-}
-
-/* LEFT SIDE */ */
-.left{ width:620px; }
+/* LEFT SIDE */
+.left{width:620px;}
 .title{font-size:1.8rem;font-weight:700;color:#ffc107;margin-bottom:6px;}
 .status{color:#7fa0c0;margin-bottom:18px;}
 .track{font-size:1.25rem;margin-top:15px;}
 .artist{color:#9cb4cd;font-size:1rem;}
 
-/* CONTROL BUTTONS */
+/* CONTROLS */
 .controls{margin-top:25px;display:flex;align-items:center;gap:25px;}
 .big-play{
   width:90px;height:90px;border-radius:50%;background:#ffc107;border:none;cursor:pointer;
@@ -72,7 +39,6 @@ body{
   box-shadow:0 0 25px #ffc107aa;
 }
 .big-play svg{width:42px;height:42px;fill:#000;}
-
 .ctrl-btn{
   width:55px;height:55px;border-radius:12px;background:#0d1b30;
   border:2px solid #ffffff20;color:#ffc107;
@@ -80,7 +46,7 @@ body{
 }
 .ctrl-btn svg{width:28px;height:28px;fill:#ffc107;}
 
-/* GRADIENT VOLUME */
+/* VOLUME */
 .volume{
   -webkit-appearance:none;
   width:220px;height:10px;border-radius:10px;
@@ -110,6 +76,49 @@ body{
   overflow:hidden;color:#9caac7;font-size:1.2rem;
 }
 #adArea img{width:100%;height:100%;object-fit:cover;}
+
+/* MOBILE COMPACT LAYOUT */
+@media (max-width:860px){
+  .player-box{
+    flex-direction:column;
+    text-align:center;
+    gap:15px;
+    padding:18px;
+    border-radius:18px;
+  }
+  .left{
+    width:100% !important;
+    max-width:100%;
+    padding:0 10px;
+  }
+  .title{font-size:1.4rem;}
+  .status{font-size:0.9rem;}
+  .track{font-size:1.05rem;}
+  .artist{font-size:0.9rem;}
+
+  .controls{
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .big-play{
+    width:65px;height:65px;
+  }
+  .big-play svg{width:32px;height:32px;}
+
+  .ctrl-btn{
+    width:42px;height:42px;
+  }
+  .ctrl-btn svg{width:22px;height:22px;}
+
+  .volume{
+    width:140px;height:8px;
+  }
+
+  .album{
+    width:150px !important;height:150px !important;border-radius:14px;
+  }
+}
 </style>
 </head>
 <body>
@@ -257,7 +266,7 @@ async function updateTrackInfo() {
     document.getElementById("currentArtist").textContent = artist;
 
     const artRes = await fetch(
-      "https://itunes.apple.com/search?term=" + encodeURIComponent(`${artist} ${track}`) + "&limit=1"
+      "" + encodeURIComponent(`${artist} ${track}`) + "&limit=1"
     );
     const artData = await artRes.json();
 
