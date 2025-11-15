@@ -30,15 +30,34 @@ body{
   .player-box{
     flex-direction:column;
     text-align:center;
-    gap:30px;
-    padding:30px;
+    gap:20px;
+    padding:20px;
   }
-  .left{ width:100%; }
-  .controls{ justify-content:center;flex-wrap:wrap; }
-  .album{ width:200px;height:200px; }
+  .left{
+    width:100% !important;
+    max-width:100%;
+  }
+  .controls{
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:18px;
+  }
+  .big-play{
+    width:75px;height:75px;
+  }
+  .ctrl-btn{
+    width:48px;height:48px;
+  }
+  .volume{
+    width:160px;
+  }
+  .album{
+    width:180px !important;
+    height:180px !important;
+  }
 }
 
-/* LEFT SIDE */
+/* LEFT SIDE */ */
 .left{ width:620px; }
 .title{font-size:1.8rem;font-weight:700;color:#ffc107;margin-bottom:6px;}
 .status{color:#7fa0c0;margin-bottom:18px;}
